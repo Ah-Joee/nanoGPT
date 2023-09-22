@@ -10,6 +10,7 @@ eval_interval = 300
 learning_rate = 1e-2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 eval_iters = 200 # evaluate the loss every 200 times
+n_embd = 32 # number of embedded dimensions
 # ---------------
 
 torch.manual_seed(1337)
@@ -37,7 +38,7 @@ decode = lambda l: ''.join([itos[i] for i in l]) # decoder: take a list of integ
 
 # Train and test splits
 data = torch.tensor(encode(text), dtype=torch.long)
-n = int(0.9*len(data)) # first 90% will be train, rest val
+n = int(0.9*len(data)) # first 90% will be trained, rest val
 train_data = data[:n]
 val_data = data[n:]
 
@@ -70,15 +71,17 @@ def estimate_loss():
 # super simple bigram model
 class BigramLanguageModel(nn.Module):
 
-    def __init__(self, vocab_size):
+    def __init__(self):
         super().__init__()
         # each token directly reads off logits for the next token from a lookup table
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
+        self.lm_head = nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
 
         # idx and targets are both (B,T) tensor of integers
-        logits = self.token_embedding_table(idx)  # (B,T,C)
+        token_emb = self.token_embedding_table(idx)  # (B,T,C)
+        logits = self.lm_head(token_emb) # (B,T,vocab_size)
 
         if targets is None:
             loss = None
@@ -107,7 +110,7 @@ class BigramLanguageModel(nn.Module):
         return idx
 
 
-model = BigramLanguageModel(vocab_size)
+model = BigramLanguageModel()
 m = model.to(device) # we move the model parameteres to the 'device' when we create it
 
 

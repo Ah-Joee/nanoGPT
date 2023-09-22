@@ -32,7 +32,7 @@ vocab_size = len(chars)
 stoi = { ch:i for i,ch in enumerate(chars) }
 itos = { i:ch for i,ch in enumerate(chars) }
 encode = lambda s: [stoi[c] for c in s] # encoder: take a string, output a list of integers
-decode = lambda l: [itos[i] for i in l] # decoder: take a list of integers, output a string
+decode = lambda l: ''.join([itos[i] for i in l]) # decoder: take a list of integers, output a string
 
 
 # Train and test splits
@@ -132,8 +132,5 @@ for iter in range(max_iters):
 
 
 # generate from the model
-context = torch.zeros((1,1), dtype=torch.long, device=device) # context is created on the 'device'
+context = torch.zeros((1, 1), dtype=torch.long, device=device) # context is created on the 'device'
 print(decode(m.generate(context, max_new_tokens=500)[0].tolist()))
-
-
-
